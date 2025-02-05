@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "941677769434",
+    "project_id": "greensteps-d19b2",
+    "storage_bucket": "greensteps-d19b2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941677769434:android:678a915f819993f9ddabe3",
+        "android_client_info": {
+          "package_name": "com.example.greenstep"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnQ1EnRiCe4pnZGemleSZFu1a9eDjQuBE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
