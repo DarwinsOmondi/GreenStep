@@ -34,7 +34,7 @@ import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth) {
+fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth,onsignOut: () -> Unit) {
     Scaffold(
         containerColor = Color(245, 245, 220),
         bottomBar = {
@@ -105,13 +105,13 @@ fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth) {
                     Text("Edit Profile")
                 }
 
-                OutlinedButton(
+                Button(
                     colors = ButtonDefaults.buttonColors(Color.Red),
                     onClick = {
                         auth.signOut()
+                        onsignOut()
                     },
                     modifier = Modifier
-                        .fillMaxWidth(0.8f)
                         .height(50.dp)
                 ){
                     Text("Log Out", style =
@@ -128,5 +128,5 @@ fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth) {
 @Preview(showBackground = true)
 @Composable
 fun AccountScreenPreview() {
-    AccountScreen(navHostController = NavHostController(LocalContext.current), auth = FirebaseAuth.getInstance())
+    AccountScreen(navHostController = NavHostController(LocalContext.current), auth = FirebaseAuth.getInstance(), onsignOut = {})
 }

@@ -111,7 +111,8 @@ dependencies {
         implementation(libs.logging.interceptor)
 
         implementation (libs.mpandroidchart)
+
+
+        implementation(libs.androidx.material.icons.extended)
     }
-
-
 }

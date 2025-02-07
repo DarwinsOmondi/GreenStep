@@ -7,23 +7,29 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+
+// Define colors for easy maintenance
+val PrimaryGreen = Color(0xFF0BC226)
+val LightGreen = Color(0xFFA4FFB1)
+val DarkGreen = Color(0xFF43A047)
+val LightGray = Color(0xFF66BB6A)
+val White = Color(0xFFFFFFFF)
+val Black = Color(0xFF000000)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,112 +40,155 @@ fun SignInScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var userEmail by rememberSaveable { mutableStateOf("") }
-    var userPassword by rememberSaveable { mutableStateOf("") }
+
+    var userEmail by remember { mutableStateOf("") }
+    var userPassword by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
-    var isLoading by rememberSaveable { mutableStateOf(false) }
-    var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF43A047), Color(0xFF66BB6A)) // Gradient with shades of green
-                )
-            ),
-        contentAlignment = Alignment.Center
+        modifier = Modifier.fillMaxSize()
+            .background(PrimaryGreen)
     ) {
-        Card(
+        Box(
             modifier = Modifier
-                .fillMaxWidth(0.85f)
-                .padding(16.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+                .fillMaxWidth()
+                .background(PrimaryGreen)
+                .height(300.dp)
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.align(Alignment.TopEnd)
+                .padding(16.dp)
             ) {
-                Text(text = "Welcome Back!", fontSize = 24.sp, color = Color.Black)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Sign in to continue", fontSize = 14.sp, color = Color.Gray)
-                Spacer(modifier = Modifier.height(32.dp))
-
-                OutlinedTextField(
-                    value = userEmail,
-                    onValueChange = { userEmail = it },
-                    label = { Text("Email Address") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color(0xFF43A047),
-                        unfocusedBorderColor = Color(0xFF66BB6A),
-                      //  textColor = Color.Black, // Black text color
-                        focusedLabelColor = Color(0xFF43A047),
-                        unfocusedLabelColor = Color.Gray
-                    )
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = userPassword,
-                    onValueChange = { userPassword = it },
-                    label = { Text("Password") },
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(imageVector = Icons.Default.Lock, contentDescription = "Toggle Password")
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color(0xFF43A047),
-                        unfocusedBorderColor = Color(0xFF66BB6A),
-                       // textColor = Color.Black, // Black text color
-                        focusedLabelColor = Color(0xFF43A047),
-                        unfocusedLabelColor = Color.Gray
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                if (errorMessage != null) {
-                    Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = {
-                        scope.launch {
-                            isLoading = true
-                            errorMessage = null
-                            val result = signInUser(auth, userEmail, userPassword, context)
-                            if (result.isSuccess) {
-                                onSignInSuccess()
-                                onSignInNavigation()
-                            } else {
-                                errorMessage = result.exceptionOrNull()?.message ?: "Sign-in failed"
-                            }
-                            isLoading = false
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 20.dp)
                 ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(color = Color.White)
-                    } else {
-                        Text("Sign In", fontSize = 16.sp, color = Color.White)
+                    Text(
+                        text = "Don't have an account?",
+                        modifier = Modifier.padding(top = 4.dp),
+                        color = White,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = onSignInNavigation,
+                        colors = ButtonDefaults.buttonColors(containerColor = LightGreen),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Get Started", color = PrimaryGreen)
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+            }
+            Text(
+                "GreenStep",
+                style = MaterialTheme.typography.titleLarge.copy(color = White),
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
 
-                TextButton(onClick = onSignInNavigation) {
-                    Text("Don't have an account? Sign Up", color = Color.Black)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(PrimaryGreen)
+                .align(Alignment.BottomCenter)
+                .height(600.dp),
+        ) {
+            Card(
+                modifier = Modifier.fillMaxSize(),
+                colors = CardDefaults.cardColors(containerColor = White),
+                shape = RoundedCornerShape(topStart = 35.dp, topEnd = 35.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Welcome Back!", style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Enter your details below", style = MaterialTheme.typography.labelSmall)
+
+                    Spacer(Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = userEmail,
+                        onValueChange = { userEmail = it },
+                        label = { Text("Email Address") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = DarkGreen,
+                            unfocusedBorderColor = LightGray,
+                            focusedLabelColor = DarkGreen,
+                            unfocusedLabelColor = Color.Gray
+                        )
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    OutlinedTextField(
+                        value = userPassword,
+                        onValueChange = { userPassword = it },
+                        label = { Text("Password") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = DarkGreen,
+                            unfocusedBorderColor = LightGray,
+                            focusedLabelColor = DarkGreen,
+                            unfocusedLabelColor = Color.Gray
+                        ) ,
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                passwordVisible = !passwordVisible
+                            }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                    contentDescription = "Toggle Password Visibility"
+                                )
+                            }
+                        }
+                    )
+
+                    Spacer(Modifier.height(20.dp))
+
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                isLoading = true
+                                errorMessage = null
+                                val result = signInUser(auth, userEmail, userPassword, context)
+                                if (result.isSuccess) {
+                                    onSignInSuccess()
+                                } else {
+                                    errorMessage = result.exceptionOrNull()?.message ?: "Sign-in failed"
+                                }
+                                isLoading = false
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(color = White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Sign In", style = MaterialTheme.typography.bodyLarge.copy(color = Black))
+                        }
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Text("Forgot Password?", color = Black, style = MaterialTheme.typography.labelSmall)
+
+                    errorMessage?.let {
+                        Spacer(Modifier.height(12.dp))
+                        Text(it, color = Color.Red, style = MaterialTheme.typography.bodySmall)
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
@@ -153,7 +202,7 @@ private suspend fun signInUser(
 ): Result<Unit> {
     return try {
         if (email.isEmpty() || password.isEmpty()) {
-            throw IllegalArgumentException("Please fill all the fields")
+            throw IllegalArgumentException("Please fill all fields")
         }
         auth.signInWithEmailAndPassword(email, password).await()
         Result.success(Unit)

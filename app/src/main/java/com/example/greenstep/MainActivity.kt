@@ -15,6 +15,7 @@ import com.example.greenstep.screens.DashboardScreen
 import com.example.greenstep.screens.HistoryScreen
 import com.example.greenstep.screens.SignInScreen
 import com.example.greenstep.screens.SignUpScreen
+import com.example.greenstep.screens.SplashScreen
 import com.example.greenstep.ui.theme.GreenStepTheme
 import com.google.firebase.auth.FirebaseAuth
 
@@ -42,12 +43,18 @@ fun GreenStep(auth: FirebaseAuth,navController: NavHostController,viewModel: Car
     val startDestination = if (auth.currentUser != null) {
         "dashboard"
     }else{
-        "signIn"
+        "splash"
     }
     NavHost(
         navController = navController,
         startDestination = startDestination
     ) {
+
+        composable("splash") {
+            SplashScreen(onSplashNavigation = {
+                navController.navigate("signIn")
+            })
+        }
         composable("signUp") {
             SignUpScreen(
                 auth,
@@ -61,16 +68,20 @@ fun GreenStep(auth: FirebaseAuth,navController: NavHostController,viewModel: Car
         composable("signIn") {
             SignInScreen(auth,
                 onSignInSuccess ={
-                navController.navigate("calculator")
+                navController.navigate("dashboard")
             },onSignInNavigation ={
-                navController.navigate("calculator")
+                navController.navigate("signUp")
             })
         }
         composable("calculator"){
             CalculatorScreen(navController)
         }
         composable("account"){
-            AccountScreen(navController,auth)
+            AccountScreen(navController,
+                auth,
+                onsignOut = {
+                navController.navigate("signIn")
+            })
         }
         composable("dashboard"){
             DashboardScreen(viewModel, navController)

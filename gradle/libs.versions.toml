@@ -15,6 +15,7 @@ identityJvm = "202411.1"
 loggingInterceptor = "4.12.0"
 material3 = "1.3.1"
 material3Version = "1.0.0"
+materialIconsExtended = "1.7.7"
 mpandroidchart = "v3.1.0"
 navigationCompose = "2.8.6"
 material3Lint = "1.4.0-alpha07"
@@ -25,6 +26,7 @@ firebaseFirestore = "25.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-material3-v100 = { module = "androidx.compose.material3:material3", version.ref = "material3Version" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
