@@ -16,7 +16,7 @@ object ApiClient {
         .addInterceptor(loggingInterceptor)
         .addInterceptor { chain ->
             val request = chain.request().newBuilder()
-                .addHeader("Authorization", "Bearer Y7lvTkAeBpyzw5xYgGZmA")
+                .addHeader("Authorization", "Bearer ${Constants.carbonInterfaceApi}")
                 .build()
             chain.proceed(request)
         }
@@ -31,5 +31,4 @@ object ApiClient {
 
 
     val carbonInterfaceApi: CarbonInterfaceApi = retrofit.create(CarbonInterfaceApi::class.java)
-
 }

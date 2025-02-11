@@ -22,7 +22,6 @@ class CarbonInterfaceViewModel : ViewModel() {
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
-    private val firestore = FirebaseFirestore.getInstance()
 
     fun updateCarbonEstimateVehicle(dataVehicle: Float, dataElectricity: Float) {
         _carbonEstimateVehicle.value = dataVehicle
