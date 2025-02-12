@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
+    id ("kotlin-kapt")
 }
 
 android {
@@ -114,5 +115,17 @@ dependencies {
 
 
         implementation(libs.androidx.material.icons.extended)
+
+        // Room Database
+        implementation (libs.androidx.room.runtime)
+        kapt (libs.androidx.room.compiler)
+
+        // Room with Coroutines support
+        implementation (libs.androidx.room.ktx)
+
+        // Optional: Room Paging (for pagination)
+        implementation (libs.androidx.room.paging)
+
+        implementation(libs.coil.compose)
     }
 }

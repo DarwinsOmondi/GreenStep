@@ -77,11 +77,13 @@ fun GreenStep(auth: FirebaseAuth,navController: NavHostController,viewModel: Car
             CalculatorScreen(navController)
         }
         composable("account"){
-            AccountScreen(navController,
+            AccountScreen(
+                navController,
                 auth,
-                onsignOut = {
-                navController.navigate("signIn")
-            })
+                onSignOut = {
+                    navController.navigate("signIn")
+                },
+            )
         }
         composable("dashboard"){
             DashboardScreen(viewModel, navController)

@@ -1,106 +1,120 @@
 package com.example.greenstep.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
+import com.example.greenstep.R
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth,onsignOut: () -> Unit) {
+fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth, onSignOut: () -> Unit) {
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var userName by remember { mutableStateOf("User Name") }
+    var showDialog by remember { mutableStateOf(false) }
+    var refreshTrigger by remember { mutableStateOf(false) } // UI refresh trigger
+    val firestore = FirebaseFirestore.getInstance()
+    val currentUser = auth.currentUser
+
+    // Fetch user data from Firestore when triggered
+    LaunchedEffect(refreshTrigger) {
+        currentUser?.uid?.let { uid ->
+            firestore.collection("users").document(uid).get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        userName = document.getString("name") ?: "User Name"
+                        val imageUriString = document.getString("imageUri") ?: ""
+                        imageUri = if (imageUriString.isNotEmpty()) Uri.parse(imageUriString) else null
+                    }
+                }
+        }
+    }
+
     Scaffold(
-        containerColor = Color(245, 245, 220),
-        bottomBar = {
-            BottomNavigationBar(navHostController)
+        topBar = {
+            TopAppBar(
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color(0xFF66BB6A)),
+                title = { Text("Account",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                ) },
+            )
         },
-    ) {
+
+        bottomBar = { BottomNavigationBar(navHostController) },
+        containerColor = Color(0xFFFFFFFF),
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(it),
+                .padding(paddingValues)
+                .background(Color(0xFFFFFFFF))
+                .padding(top = 16.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Profile Image
+            // Profile Picture
             Box(
                 modifier = Modifier
                     .size(120.dp)
-                    .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
-                    .padding(4.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, Color.Gray, CircleShape)
             ) {
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_profile_placeholder), // Replace with your profile image
-//                contentDescription = "Profile Picture",
-//                contentScale = ContentScale.Crop,
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .background(Color.White, CircleShape)
-//            )
+                Image(
+                    painter = if (imageUri != null) rememberAsyncImagePainter(imageUri)
+                    else painterResource(id = R.drawable.baseline_account_circle_24),
+                    contentDescription = "Profile Picture",
+                    modifier = Modifier.fillMaxSize()
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = auth.currentUser?.displayName.toString(),
-                style = TextStyle(
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
+                text = userName,
+                style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = auth.currentUser?.email.toString(),
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                ),
+                text = auth.currentUser?.email ?: "user@example.com",
+                style = TextStyle(fontSize = 16.sp, color = Color.Gray),
                 textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Buttons
+
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Button(
-                    onClick = { /* Edit Profile Action */ },
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f)
-                        .height(50.dp)
+                    onClick = { showDialog = true },
+                    modifier = Modifier.fillMaxWidth(0.8f).height(50.dp)
                 ) {
                     Text("Edit Profile")
                 }
@@ -109,24 +123,112 @@ fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth,onsig
                     colors = ButtonDefaults.buttonColors(Color.Red),
                     onClick = {
                         auth.signOut()
-                        onsignOut()
+                        onSignOut()
                     },
-                    modifier = Modifier
-                        .height(50.dp)
-                ){
-                    Text("Log Out", style =
-                    TextStyle(
-                        color = Color.White
-                    )
-                    )
+                    modifier = Modifier.height(50.dp)
+                ) {
+                    Text("Log Out", style = TextStyle(color = Color.White))
                 }
             }
         }
     }
+
+    if (showDialog) {
+        EditProfileDialog(
+            initialName = userName,
+            initialImageUri = imageUri,
+            onDismiss = { showDialog = false },
+            onSave = { newName, newImageUri ->
+                userName = newName
+                imageUri = newImageUri
+                saveProfileToFirestore(currentUser?.uid, newName, newImageUri) {
+                    refreshTrigger = !refreshTrigger // Trigger UI refresh
+                }
+                showDialog = false
+            }
+        )
+    }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun AccountScreenPreview() {
-    AccountScreen(navHostController = NavHostController(LocalContext.current), auth = FirebaseAuth.getInstance(), onsignOut = {})
+fun EditProfileDialog(
+    initialName: String,
+    initialImageUri: Uri?,
+    onDismiss: () -> Unit,
+    onSave: (String, Uri?) -> Unit
+) {
+    var userName by remember { mutableStateOf(initialName) }
+    var imageUri by remember { mutableStateOf(initialImageUri) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Profile") },
+        text = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Color.Gray, CircleShape)
+                ) {
+                    Image(
+                        painter = if (imageUri != null) rememberAsyncImagePainter(imageUri)
+                        else painterResource(id = R.drawable.baseline_account_circle_24),
+                        contentDescription = "Selected Image",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                Button(onClick = { launcher.launch("image/*") }) {
+                    Text("Choose Image")
+                }
+
+                OutlinedTextField(
+                    value = userName,
+                    onValueChange = { userName = it },
+                    label = { Text("Name") },
+                    singleLine = true
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onSave(userName, imageUri) }) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+fun saveProfileToFirestore(userId: String?, name: String, imageUri: Uri?, onComplete: () -> Unit) {
+    if (userId == null) return
+
+    val firestore = FirebaseFirestore.getInstance()
+    val profileData = hashMapOf(
+        "name" to name,
+        "imageUri" to (imageUri?.toString()?.takeIf { it.isNotEmpty() } ?: "")
+    )
+
+    firestore.collection("users").document(userId)
+        .set(profileData)
+        .addOnSuccessListener {
+            println("Profile updated successfully.")
+            onComplete() // Trigger UI refresh
+        }
+        .addOnFailureListener { e ->
+            println("Error updating profile: ${e.message}")
+        }
 }
