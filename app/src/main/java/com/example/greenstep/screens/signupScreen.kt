@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -42,7 +43,6 @@ fun SignUpScreen(
     var userPassword by rememberSaveable { mutableStateOf("") }
     var userConfirmPassword by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
-    var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
     var isLoading by rememberSaveable { mutableStateOf(false) }
     var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -156,56 +156,61 @@ fun SignUpScreen(
                 OutlinedTextField(
                     value = userName,
                     onValueChange = { userName = it },
-                    label = { Text("Name") },
+                    label = { Text("Name",
+                        color = Color.Black,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth()
                         .padding(16.dp),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color(0xFF43A047),
-                        unfocusedBorderColor = Color(0xFF66BB6A),
-                        //  textColor = Color.Black, // Black text color
-                        focusedLabelColor = Color(0xFF43A047),
-                        unfocusedLabelColor = Color.Gray
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor =Color.Black,
+                        focusedBorderColor = Color.DarkGray,
+                        unfocusedBorderColor = Color.Black
                     )
                 )
                 OutlinedTextField(
                     value = userEmail,
                     onValueChange = { userEmail = it },
-                    label = { Text("Email") },
+                    label = { Text("Email",
+                        color = Color.Black,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black) },
                     modifier = Modifier.fillMaxWidth()
                         .padding(16.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     colors =
                     TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color(0xFF43A047),
-                        //  textColor = Color.Balck,
-                        unfocusedBorderColor = Color(0xFF66BB6A),
-                        focusedLabelColor = Color(0xFF43A047),
-                        unfocusedLabelColor = Color.Gray
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor =Color.Black,
+                        focusedBorderColor = Color.DarkGray,
+                        unfocusedBorderColor = Color.Black
                     )
                 )
                 OutlinedTextField(
                     value = userPassword,
                     onValueChange = { userPassword = it },
-                    label = { Text("Password") },
+                    label = { Text("Password",
+                        color = Color.Black,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black) },
                     modifier = Modifier.fillMaxWidth()
                         .padding(16.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     colors =
                     TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color(0xFF43A047),
-                        //  textColor = Color.Balck,
-                        unfocusedBorderColor = Color(0xFF66BB6A),
-                        focusedLabelColor = Color(0xFF43A047),
-                        unfocusedLabelColor = Color.Gray
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor =Color.Black,
+                        focusedBorderColor = Color.DarkGray,
+                        unfocusedBorderColor = Color.Black
                     ) ,
                     trailingIcon = {
-                        IconButton(onClick = {
-                            passwordVisible = !passwordVisible
-                        }) {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                contentDescription = "Toggle Password Visibility"
+                                contentDescription = "Toggle Password Visibility",
                             )
                         }
                     }
@@ -213,25 +218,26 @@ fun SignUpScreen(
                 OutlinedTextField(
                     value = userConfirmPassword,
                     onValueChange = { userConfirmPassword = it },
-                    label = { Text("Confirm Password") },
+                    label = { Text("Confirm Password",
+                        color = Color.Black,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black) },
                     modifier = Modifier.fillMaxWidth()
                         .padding(16.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     colors =
                     TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color(0xFF43A047),
-                        //  textColor = Color.Balck,
-                        unfocusedBorderColor = Color(0xFF66BB6A),
-                        focusedLabelColor = Color(0xFF43A047),
-                        unfocusedLabelColor = Color.Gray
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor =Color.Black,
+                        focusedBorderColor = Color.DarkGray,
+                        unfocusedBorderColor = Color.Black
                     ) ,
                     trailingIcon = {
-                        IconButton(onClick = {
-                            passwordVisible = !passwordVisible
-                        }) {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                contentDescription = "Toggle Password Visibility"
+                                contentDescription = "Toggle Password Visibility",
                             )
                         }
                     }

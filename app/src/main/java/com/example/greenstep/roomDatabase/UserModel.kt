@@ -9,5 +9,4 @@ data class UserModel(
     @PrimaryKey(autoGenerate = true)
     val userID:Int = 0,
     val userName:String,
-    val imgURL:String
 )

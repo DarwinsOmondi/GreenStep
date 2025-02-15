@@ -16,9 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -46,7 +50,6 @@ fun SignInScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
-    var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -116,14 +119,17 @@ fun SignInScreen(
                     OutlinedTextField(
                         value = userEmail,
                         onValueChange = { userEmail = it },
-                        label = { Text("Email Address") },
+                        label = { Text("Email Address",
+                            color = Color.Black,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Black) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = DarkGreen,
-                            unfocusedBorderColor = LightGray,
-                            focusedLabelColor = DarkGreen,
-                            unfocusedLabelColor = Color.Gray
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor =Color.Black,
+                            focusedBorderColor = Color.DarkGray,
+                            unfocusedBorderColor = Color.Black
                         )
                     )
 
@@ -132,22 +138,24 @@ fun SignInScreen(
                     OutlinedTextField(
                         value = userPassword,
                         onValueChange = { userPassword = it },
-                        label = { Text("Password") },
+                        label = { Text("Password",
+                            color = Color.Black,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Black) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = DarkGreen,
-                            unfocusedBorderColor = LightGray,
-                            focusedLabelColor = DarkGreen,
-                            unfocusedLabelColor = Color.Gray
-                        ) ,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor =Color.Black,
+                            focusedBorderColor = Color.DarkGray,
+                            unfocusedBorderColor = Color.Black
+                        ),
                         trailingIcon = {
-                            IconButton(onClick = {
-                                passwordVisible = !passwordVisible
-                            }) {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
                                     imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                    contentDescription = "Toggle Password Visibility"
+                                    contentDescription = "Toggle Password Visibility",
                                 )
                             }
                         }

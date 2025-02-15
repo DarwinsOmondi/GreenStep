@@ -20,7 +20,7 @@ class UserRoomViewModel(application: Application) : AndroidViewModel(application
 
     fun addUser(name: String, imgURL: String) {
         viewModelScope.launch {
-            repository.insertUser(UserModel(userName = name, imgURL = imgURL))
+            repository.insertUser(UserModel(userName = name))
         }
     }
 

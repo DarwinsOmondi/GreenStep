@@ -43,7 +43,6 @@ android {
         compose = true
     }
 
-    // 🚀 Fix for duplicate META-INF files
     packaging {
         resources {
             excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
@@ -56,7 +55,7 @@ dependencies {
 
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.firestore)
-    dependencies {
+    implementation(libs.firebase.storage)
 
         // Core Libraries
         implementation(libs.androidx.core.ktx)
@@ -127,5 +126,5 @@ dependencies {
         implementation (libs.androidx.room.paging)
 
         implementation(libs.coil.compose)
-    }
+    implementation(libs.generativeai)
 }

@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.greenstep.screens.AccountScreen
 import com.example.greenstep.screens.CalculatorScreen
+import com.example.greenstep.screens.CarbonEmissionForm
 import com.example.greenstep.screens.DashboardScreen
 import com.example.greenstep.screens.HistoryScreen
 import com.example.greenstep.screens.SignInScreen
@@ -28,11 +29,12 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val auth:FirebaseAuth = FirebaseAuth.getInstance()
                 val viewModel = CarbonInterfaceViewModel()
-                GreenStep(
-                    auth,
-                    navController,
-                    viewModel
-                )
+                CarbonEmissionForm()
+//                GreenStep(
+//                    auth,
+//                    navController,
+//                    viewModel
+//                )
             }
         }
     }

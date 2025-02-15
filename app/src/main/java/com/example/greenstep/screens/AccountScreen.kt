@@ -30,30 +30,19 @@ import com.google.firebase.firestore.FirebaseFirestore
 @Composable
 fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth, onSignOut: () -> Unit) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var downloadedUri = remember { mutableStateOf<String?>("") }
     var userName by remember { mutableStateOf("User Name") }
     var showDialog by remember { mutableStateOf(false) }
     var refreshTrigger by remember { mutableStateOf(false) } // UI refresh trigger
     val firestore = FirebaseFirestore.getInstance()
     val currentUser = auth.currentUser
 
-    // Fetch user data from Firestore when triggered
-    LaunchedEffect(refreshTrigger) {
-        currentUser?.uid?.let { uid ->
-            firestore.collection("users").document(uid).get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        userName = document.getString("name") ?: "User Name"
-                        val imageUriString = document.getString("imageUri") ?: ""
-                        imageUri = if (imageUriString.isNotEmpty()) Uri.parse(imageUriString) else null
-                    }
-                }
-        }
-    }
+
 
     Scaffold(
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color(0xFF66BB6A)),
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color(0xFF43A047)),
                 title = { Text("Account",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface,
@@ -138,12 +127,8 @@ fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth, onSi
             initialName = userName,
             initialImageUri = imageUri,
             onDismiss = { showDialog = false },
-            onSave = { newName, newImageUri ->
+            onSave = { newName ->
                 userName = newName
-                imageUri = newImageUri
-                saveProfileToFirestore(currentUser?.uid, newName, newImageUri) {
-                    refreshTrigger = !refreshTrigger // Trigger UI refresh
-                }
                 showDialog = false
             }
         )
@@ -155,7 +140,7 @@ fun EditProfileDialog(
     initialName: String,
     initialImageUri: Uri?,
     onDismiss: () -> Unit,
-    onSave: (String, Uri?) -> Unit
+    onSave: (String) -> Unit
 ) {
     var userName by remember { mutableStateOf(initialName) }
     var imageUri by remember { mutableStateOf(initialImageUri) }
@@ -201,7 +186,7 @@ fun EditProfileDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onSave(userName, imageUri) }) {
+            Button(onClick = { onSave(userName) }) {
                 Text("Save")
             }
         },
@@ -213,13 +198,12 @@ fun EditProfileDialog(
     )
 }
 
-fun saveProfileToFirestore(userId: String?, name: String, imageUri: Uri?, onComplete: () -> Unit) {
+fun saveProfileToFirestore(userId: String?, name: String,onComplete: () -> Unit) {
     if (userId == null) return
 
     val firestore = FirebaseFirestore.getInstance()
     val profileData = hashMapOf(
         "name" to name,
-        "imageUri" to (imageUri?.toString()?.takeIf { it.isNotEmpty() } ?: "")
     )
 
     firestore.collection("users").document(userId)

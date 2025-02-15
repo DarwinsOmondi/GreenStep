@@ -33,7 +33,9 @@ val bottomItemsList = listOf(
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
     NavigationBar(
-        modifier = Modifier.background(Color.White)
+       modifier = Modifier.background(
+           Color(0xFF43A047)
+       )
     ) {
         val currentRoute = navController.currentBackStackEntry?.destination?.route
         bottomItemsList.forEach { screen ->

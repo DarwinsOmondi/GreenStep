@@ -2,6 +2,7 @@ package com.example.greenstep.screens
 
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -18,9 +19,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import com.example.greenstep.CarbonAnalysisViewModel
 import com.example.greenstep.CarbonInterfaceViewModel
 import com.example.greenstep.R
 import com.github.mikephil.charting.charts.BarChart
@@ -30,6 +34,7 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +49,10 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
     val footprintsData = remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
+    val carbonAnalysisViewModel :CarbonAnalysisViewModel = viewModel()
+
+
+
 
     LaunchedEffect(Unit) {
         viewModel.fetchCarbonFootprintData { data ->
@@ -78,10 +87,13 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
     }
 
 
+
+
+
     Scaffold(
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color(0xFF66BB6A)),
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color(0xFF43A047)),
                 title = {
                     Row(
                         modifier = Modifier
@@ -109,7 +121,7 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
                         Text(
                             text = userName,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = Color.Black,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -155,16 +167,18 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
             }
             Spacer(Modifier.height(16.dp))
             CarbonFootprintBarChart(vehicleEmissions = miles, electricityEmissions = electricity)
+            val totalVehicleEmissions = footprints.value.sumOf { it.milesDriven.toDouble() }.toFloat()
+            val totalElectricityEmissions = footprints.value.sumOf { it.electricityUsed.toDouble() }.toFloat()
 
-            footprints.value.forEach { entry ->
-                TotalEmissionCard(
-                    electricityEstimate = entry.electricityUsed,
-                    vehicleEstimate = entry.milesDriven
-                )
-            }
+            val totalCarbonEmission = (totalVehicleEmissions + totalElectricityEmissions)
+
+                carbonAnalysisViewModel.analyzeCarbonEmissions(totalCarbonEmission,totalVehicleEmissions,totalElectricityEmissions)
+
+            GeminiAnalysis(carbonAnalysisViewModel)
         }
     }
 }
+
 
 @Composable
 fun CarbonFootprintBarChart(vehicleEmissions: Float, electricityEmissions: Float) {
@@ -173,8 +187,8 @@ fun CarbonFootprintBarChart(vehicleEmissions: Float, electricityEmissions: Float
             .fillMaxWidth()
             .height(400.dp)
             .padding(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor =Color(0xFFD9D9D9))
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(containerColor =Color(0xFFFFFFFF))
     ) {
         AndroidView(
             modifier = Modifier
@@ -233,90 +247,23 @@ data class CarbonFootPrintData(
 
 
 @Composable
-fun TotalEmissionCard(
-    vehicleEstimate: Float,
-    electricityEstimate: Float
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Text(
-            "Total Emission",
-            style = TextStyle(
-                fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+fun GeminiAnalysis(geminiAnalysisViewModel:CarbonAnalysisViewModel){
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF292929)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        "Vehicle",
-                        style = TextStyle(
-                            fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                            fontWeight = FontWeight.Medium
-                        ),
-                        color = Color.White,
-                    )
-                    Text(
-                        "$vehicleEstimate kg CO₂",
-                        style = TextStyle(
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = Color(0xFFE0E0E0)
-                    )
-                }
-            }
-
-            Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        "Electricity",
-                        style = TextStyle(
-                            fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                            fontWeight = FontWeight.Medium
-                        ),
-                        color = Color.White,
-                    )
-                    Text(
-                        "$electricityEstimate kg CO₂",
-                        style = TextStyle(
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = Color(0xFFE0E0E0)
-                    )
-                }
-            }
+    val geminiResponse = geminiAnalysisViewModel.analysisResult
+    Card (
+        Modifier.wrapContentSize(),
+        colors = CardDefaults.cardColors(containerColor =Color(0xFFFFFFFF)),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ){
+        if (geminiAnalysisViewModel.isLoading.value){
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }else{
+            Text("${geminiResponse.value}",
+                color = Color.Black,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Black)
         }
     }
 }
-
