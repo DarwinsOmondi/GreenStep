@@ -17,18 +17,17 @@ object ApiClient {
         .addInterceptor { chain ->
             val request = chain.request().newBuilder()
                 .addHeader("Authorization", "Bearer ${Constants.carbonInterfaceApi}")
+                .addHeader("Content-Type", "application/json")
                 .build()
             chain.proceed(request)
         }
         .build()
 
-
-   private val retrofit = Retrofit.Builder()
+    private val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
-
 
     val carbonInterfaceApi: CarbonInterfaceApi = retrofit.create(CarbonInterfaceApi::class.java)
 }

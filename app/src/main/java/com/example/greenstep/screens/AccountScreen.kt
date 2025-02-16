@@ -20,15 +20,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import com.example.greenstep.CarbonFromSheetViewModel
 import com.example.greenstep.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth, onSignOut: () -> Unit) {
+fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth, onSignOut: () -> Unit,onSheetNav:() -> Unit) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var downloadedUri = remember { mutableStateOf<String?>("") }
     var userName by remember { mutableStateOf("User Name") }
@@ -36,8 +38,15 @@ fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth, onSi
     var refreshTrigger by remember { mutableStateOf(false) } // UI refresh trigger
     val firestore = FirebaseFirestore.getInstance()
     val currentUser = auth.currentUser
+    val carbonFormSheetViewModel:CarbonFromSheetViewModel = viewModel()
+    val formSheetData = remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
 
 
+    LaunchedEffect(Unit) {
+        carbonFormSheetViewModel.fetchSheetData { data ->
+            formSheetData.value = data
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -117,6 +126,17 @@ fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth, onSi
                     modifier = Modifier.height(50.dp)
                 ) {
                     Text("Log Out", style = TextStyle(color = Color.White))
+                }
+
+                Spacer(Modifier.height(16.dp))
+                Button(
+                    colors = ButtonDefaults.buttonColors(Color.Red),
+                    onClick = {
+                        onSheetNav()
+                    },
+                    modifier = Modifier.height(50.dp)
+                ) {
+                    Text("Edit user data", style = TextStyle(color = Color.White))
                 }
             }
         }
@@ -198,7 +218,7 @@ fun EditProfileDialog(
     )
 }
 
-fun saveProfileToFirestore(userId: String?, name: String,onComplete: () -> Unit) {
+fun saveProfileToFireStore(userId: String?, name: String,onComplete: () -> Unit) {
     if (userId == null) return
 
     val firestore = FirebaseFirestore.getInstance()
@@ -206,7 +226,8 @@ fun saveProfileToFirestore(userId: String?, name: String,onComplete: () -> Unit)
         "name" to name,
     )
 
-    firestore.collection("users").document(userId)
+    firestore.collection("users")
+        .document(userId)
         .set(profileData)
         .addOnSuccessListener {
             println("Profile updated successfully.")

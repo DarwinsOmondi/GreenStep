@@ -29,12 +29,11 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val auth:FirebaseAuth = FirebaseAuth.getInstance()
                 val viewModel = CarbonInterfaceViewModel()
-                CarbonEmissionForm()
-//                GreenStep(
-//                    auth,
-//                    navController,
-//                    viewModel
-//                )
+                GreenStep(
+                    auth,
+                    navController,
+                    viewModel
+                )
             }
         }
     }
@@ -85,6 +84,9 @@ fun GreenStep(auth: FirebaseAuth,navController: NavHostController,viewModel: Car
                 onSignOut = {
                     navController.navigate("signIn")
                 },
+                onSheetNav = {
+                    navController.navigate("carbonEmissionForm")
+                }
             )
         }
         composable("dashboard"){
@@ -92,6 +94,11 @@ fun GreenStep(auth: FirebaseAuth,navController: NavHostController,viewModel: Car
         }
         composable("history"){
             HistoryScreen(navController, viewModel)
+        }
+        composable("carbonEmissionForm"){
+            CarbonEmissionForm(onComplete = {
+                navController.navigate("account")
+            })
         }
     }
 }

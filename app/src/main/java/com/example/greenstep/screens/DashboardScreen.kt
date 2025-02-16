@@ -1,12 +1,15 @@
 package com.example.greenstep.screens
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.*
@@ -15,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.greenstep.CarbonAnalysisViewModel
+import com.example.greenstep.CarbonFromSheetViewModel
 import com.example.greenstep.CarbonInterfaceViewModel
 import com.example.greenstep.R
 import com.github.mikephil.charting.charts.BarChart
@@ -35,6 +40,7 @@ import com.github.mikephil.charting.data.BarEntry
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
+import javax.annotation.RegEx
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,9 +56,15 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
     val currentUser = auth.currentUser
     val footprintsData = remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
     val carbonAnalysisViewModel :CarbonAnalysisViewModel = viewModel()
+    val carbonFormSheetViewModel: CarbonFromSheetViewModel = viewModel()
 
+    val formSheetData = remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
 
-
+    LaunchedEffect(Unit) {
+        carbonFormSheetViewModel.fetchSheetData { data ->
+            formSheetData.value = data
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.fetchCarbonFootprintData { data ->
@@ -85,8 +97,6 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
                 }
         }
     }
-
-
 
 
 
@@ -171,8 +181,20 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
             val totalElectricityEmissions = footprints.value.sumOf { it.electricityUsed.toDouble() }.toFloat()
 
             val totalCarbonEmission = (totalVehicleEmissions + totalElectricityEmissions)
+            val vehicleModel = formSheetData.value.firstOrNull()?.get("vehicleModel") as? String ?: ""
+            val fuelType = formSheetData.value.firstOrNull()?.get("fuelType") as? String ?: ""
+            val electricitySource = formSheetData.value.firstOrNull()?.get("electricitySource") as? String ?: ""
+            val context = LocalContext.current
 
-                carbonAnalysisViewModel.analyzeCarbonEmissions(totalCarbonEmission,totalVehicleEmissions,totalElectricityEmissions)
+            if (vehicleModel.isNotEmpty() && fuelType.isNotEmpty() && electricitySource.isNotEmpty()){
+                if (formSheetData.value.isNotEmpty()){
+                    carbonAnalysisViewModel.analyzeCarbonEmissions(totalCarbonEmission,totalVehicleEmissions,totalElectricityEmissions,vehicleModel,fuelType,electricitySource)
+                }else{
+                    Toast.makeText(navController.context, "No data found", Toast.LENGTH_SHORT).show()
+                }
+            }else{
+                Toast.makeText(context, "Your are missing an important field", Toast.LENGTH_SHORT).show()
+            }
 
             GeminiAnalysis(carbonAnalysisViewModel)
         }
@@ -250,8 +272,10 @@ data class CarbonFootPrintData(
 fun GeminiAnalysis(geminiAnalysisViewModel:CarbonAnalysisViewModel){
 
     val geminiResponse = geminiAnalysisViewModel.analysisResult
+    val filteredResponse = geminiResponse.value?.replace(Regex("\\*{1,2}([^*]+)\\*{1,2}"), "$1")
+
     Card (
-        Modifier.wrapContentSize(),
+        Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor =Color(0xFFFFFFFF)),
         elevation = CardDefaults.cardElevation(4.dp)
     ){
@@ -260,10 +284,22 @@ fun GeminiAnalysis(geminiAnalysisViewModel:CarbonAnalysisViewModel){
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }else{
-            Text("${geminiResponse.value}",
-                color = Color.Black,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Black)
+            val scrollState = rememberScrollState()
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+            ) {
+                Text(
+                    text = "$filteredResponse",
+                    color = Color.Black,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+
         }
     }
 }

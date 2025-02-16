@@ -26,17 +26,16 @@ class CarbonAnalysisViewModel : ViewModel() {
         )
     )
 
-    fun analyzeCarbonEmissions(totalVehicleEmissions: Float, milesDrivenPerDay: Float, electricalConsumptionPerDay: Float) {
+    fun analyzeCarbonEmissions(totalVehicleEmissions: Float, milesDrivenPerDay: Float, electricalConsumptionPerDay: Float,vehicleModel:String, selectedFuelType:String, selectedElectricitySource:String) {
         viewModelScope.launch {
             isLoading.value = true
             errorMessage.value = null
 
             try {
                 val query = """
-                    Analyze the user's carbon footprint based on this data: $totalVehicleEmissions kg CO₂.
-                    Which we get from the electrical consumption per day $electricalConsumptionPerDay and miles driven per day$milesDrivenPerDay.
-                    Provide a breakdown and suggest practical ways to reduce their carbon emissions.
-                    Assume the type of electricity source and type of fuel user your imagination.
+                    Analyze the user's carbon footprint based on this data: $totalVehicleEmissions kg CO₂, which is calculated by the carbon interface api.
+                    Which we get from the electrical consumption per day $electricalConsumptionPerDay the source of the electricity is $selectedElectricitySource and miles driven per day$milesDrivenPerDay from this vehicle model $vehicleModel which uses this type of fuel $selectedFuelType.
+                    Provide a breakdown the carbon emissions.Please be brief.
                 """.trimIndent()
 
                 val response = model.generateContent(query)
