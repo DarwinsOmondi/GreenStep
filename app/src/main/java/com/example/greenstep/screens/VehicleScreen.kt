@@ -114,4 +114,3 @@ fun VehicleList(models: List<VehicleModelItem>) {
         }
     }
 }
-
