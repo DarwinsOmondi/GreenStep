@@ -68,6 +68,7 @@ fun CameraScreen() {
         }
     }
 
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -267,7 +267,6 @@ data class CarbonFootPrintData(
 )
 
 
-
 @Composable
 fun GeminiAnalysis(geminiAnalysisViewModel:CarbonAnalysisViewModel){
 

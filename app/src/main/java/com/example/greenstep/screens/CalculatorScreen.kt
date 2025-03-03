@@ -134,6 +134,7 @@ fun CalculatorScreen(
                 }
             }
 
+
             carbonEstimateVehicle?.let { vehicleEstimate ->
                 carbonEstimateElectricity?.let { electricityEstimate ->
                     Spacer(modifier = Modifier.height(32.dp))
