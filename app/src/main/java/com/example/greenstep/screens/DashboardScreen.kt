@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -41,6 +42,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import javax.annotation.RegEx
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,14 +61,18 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
     val carbonFormSheetViewModel: CarbonFromSheetViewModel = viewModel()
 
     val formSheetData = remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
+    val totalVehicleEmissions = footprints.value.sumOf { it.milesDriven.toDouble() }.toFloat()
+    val totalElectricityEmissions = footprints.value.sumOf { it.electricityUsed.toDouble() }.toFloat()
+
+    val totalCarbonEmission = (totalVehicleEmissions + totalElectricityEmissions)
+    val vehicleModel = formSheetData.value.firstOrNull()?.get("vehicleModel") as? String ?: ""
+    val fuelType = formSheetData.value.firstOrNull()?.get("fuelType") as? String ?: ""
+    val electricitySource = formSheetData.value.firstOrNull()?.get("electricitySource") as? String ?: ""
 
     LaunchedEffect(Unit) {
         carbonFormSheetViewModel.fetchSheetData { data ->
             formSheetData.value = data
         }
-    }
-
-    LaunchedEffect(Unit) {
         viewModel.fetchCarbonFootprintData { data ->
             val parsedData = data.mapNotNull { doc ->
                 try {
@@ -83,23 +89,26 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
             miles = parsedData.sumOf { it.milesDriven.toDouble() }.toFloat()
             electricity = parsedData.sumOf { it.electricityUsed.toDouble() }.toFloat()
         }
-    }
-
-    LaunchedEffect(Unit) {
+        carbonAnalysisViewModel.analyzeCarbonEmissions(
+            totalCarbonEmission,
+            totalVehicleEmissions,
+            totalElectricityEmissions,
+            vehicleModel,
+            fuelType,
+            electricitySource
+        )
+        
         currentUser?.uid?.let { uid ->
             firestore.collection("users").document(uid).get()
                 .addOnSuccessListener { document ->
                     if (document.exists()) {
                         userName = document.getString("name") ?: "User Name"
                         val imageUriString = document.getString("imageUri") ?: ""
-                        imageUri = if (imageUriString.isNotEmpty()) Uri.parse(imageUriString) else null
+                        imageUri = if (imageUriString.isNotEmpty()) imageUriString.toUri() else null
                     }
                 }
         }
     }
-
-
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -130,7 +139,7 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
 
                         Text(
                             text = userName,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            style = typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = Color.Black,
                             modifier = Modifier.weight(1f)
                         )
@@ -177,13 +186,6 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
             }
             Spacer(Modifier.height(16.dp))
             CarbonFootprintBarChart(vehicleEmissions = miles, electricityEmissions = electricity)
-            val totalVehicleEmissions = footprints.value.sumOf { it.milesDriven.toDouble() }.toFloat()
-            val totalElectricityEmissions = footprints.value.sumOf { it.electricityUsed.toDouble() }.toFloat()
-
-            val totalCarbonEmission = (totalVehicleEmissions + totalElectricityEmissions)
-            val vehicleModel = formSheetData.value.firstOrNull()?.get("vehicleModel") as? String ?: ""
-            val fuelType = formSheetData.value.firstOrNull()?.get("fuelType") as? String ?: ""
-            val electricitySource = formSheetData.value.firstOrNull()?.get("electricitySource") as? String ?: ""
             val context = LocalContext.current
 
             if (vehicleModel.isNotEmpty() && fuelType.isNotEmpty() && electricitySource.isNotEmpty()){
@@ -193,7 +195,7 @@ fun DashboardScreen(viewModel: CarbonInterfaceViewModel, navController: NavHostC
                     Toast.makeText(navController.context, "No data found", Toast.LENGTH_SHORT).show()
                 }
             }else{
-                Toast.makeText(context, "Your are missing an important field", Toast.LENGTH_SHORT).show()
+
             }
 
             GeminiAnalysis(carbonAnalysisViewModel)
@@ -266,21 +268,15 @@ data class CarbonFootPrintData(
     val carbonEmission: Float
 )
 
-
 @Composable
 fun GeminiAnalysis(geminiAnalysisViewModel:CarbonAnalysisViewModel){
 
     val geminiResponse = geminiAnalysisViewModel.analysisResult
     val filteredResponse = geminiResponse.value?.replace(Regex("\\*{1,2}([^*]+)\\*{1,2}"), "$1")
 
-    Card (
-        Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor =Color(0xFFFFFFFF)),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ){
         if (geminiAnalysisViewModel.isLoading.value){
             CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+               strokeCap = StrokeCap.Butt
             )
         }else{
             val scrollState = rememberScrollState()
@@ -297,8 +293,6 @@ fun GeminiAnalysis(geminiAnalysisViewModel:CarbonAnalysisViewModel){
                     fontWeight = FontWeight.Black,
                     modifier = Modifier.padding(16.dp)
                 )
-            }
-
         }
     }
 }

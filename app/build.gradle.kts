@@ -52,10 +52,9 @@ android {
 
 
 dependencies {
-
-    implementation(libs.androidx.runtime.livedata)
-    implementation(libs.firebase.firestore)
-    implementation(libs.firebase.storage)
+         implementation(libs.androidx.runtime.livedata)
+         implementation(libs.firebase.firestore)
+         implementation(libs.firebase.storage)
 
         // Core Libraries
         implementation(libs.androidx.core.ktx)
@@ -96,7 +95,6 @@ dependencies {
         // Navigation
         implementation(libs.androidx.navigation.compose)
 
-        // No need for duplicate or incorrect Material3 dependencies
 
         // Retrofit
         implementation(libs.retrofit)
@@ -112,7 +110,6 @@ dependencies {
 
         implementation (libs.mpandroidchart)
 
-
         implementation(libs.androidx.material.icons.extended)
 
         // Room Database
@@ -126,5 +123,11 @@ dependencies {
         implementation (libs.androidx.room.paging)
 
         implementation(libs.coil.compose)
-    implementation(libs.generativeai)
+        implementation(libs.generativeai)
+
+        //location dependencies
+        implementation(libs.play.services.location)
+        implementation("com.google.accompanist:accompanist-permissions:0.31.3-beta")
+        implementation("androidx.activity:activity-compose:1.8.2")
+        implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
 }

@@ -11,20 +11,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.greenstep.CarbonInterfaceViewModel
-import com.example.greenstep.R
+import com.example.greenstep.TrackingViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculatorScreen(
     navController: NavHostController,
-    viewModel: CarbonInterfaceViewModel = viewModel()
+    trackingViewModel: TrackingViewModel,
+    viewModel: CarbonInterfaceViewModel = viewModel(),
 ) {
     var milesDriven by remember { mutableStateOf("") }
     var electricityUsed by remember { mutableStateOf("") }
@@ -36,6 +36,9 @@ fun CalculatorScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val distance = trackingViewModel.distanceCovered.collectAsState()
+    val steps = trackingViewModel.stepCount.collectAsState()
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) },
@@ -49,6 +52,8 @@ fun CalculatorScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Text("Distance Covered: ${distance.value} meters", color = Color.Black)
+            Text("Step Count: ${steps.value}", color = Color.Black)
             Text(
                 text = "Carbon Footprint Calculator",
                 style = MaterialTheme.typography.headlineMedium,

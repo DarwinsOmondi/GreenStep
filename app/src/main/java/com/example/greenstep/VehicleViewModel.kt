@@ -25,7 +25,7 @@ class VehicleViewModel : ViewModel() {
             _errorMessage.value = null
             try {
                 val response: List<VehicleModelItem> = ApiClient.carbonInterfaceApi.getVehicleModels(vehicleMakeId)
-                _vehicleModels.value = response // ✅ Now returning List<VehicleModelItem>
+                _vehicleModels.value = response
             } catch (e: Exception) {
                 _errorMessage.value = e.message
             } finally {

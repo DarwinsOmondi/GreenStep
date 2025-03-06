@@ -3,26 +3,26 @@ package com.example.greenstep.screens
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
 import com.example.greenstep.CarbonFromSheetViewModel
 import com.example.greenstep.R
 import com.google.firebase.auth.FirebaseAuth
@@ -30,17 +30,18 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth, onSignOut: () -> Unit,onSheetNav:() -> Unit) {
+fun AccountScreen(
+    navHostController: NavHostController,
+    auth: FirebaseAuth,
+    onSignOut: () -> Unit,
+    onSheetNav: () -> Unit
+) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var downloadedUri = remember { mutableStateOf<String?>("") }
     var userName by remember { mutableStateOf("User Name") }
     var showDialog by remember { mutableStateOf(false) }
-    var refreshTrigger by remember { mutableStateOf(false) } // UI refresh trigger
     val firestore = FirebaseFirestore.getInstance()
-    val currentUser = auth.currentUser
-    val carbonFormSheetViewModel:CarbonFromSheetViewModel = viewModel()
+    val carbonFormSheetViewModel: CarbonFromSheetViewModel = viewModel()
     val formSheetData = remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
-
 
     LaunchedEffect(Unit) {
         carbonFormSheetViewModel.fetchSheetData { data ->
@@ -52,46 +53,33 @@ fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth, onSi
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color(0xFF43A047)),
-                title = { Text("Account",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface,
-                ) },
+                title = {
+                    Text(
+                        "Account",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             )
         },
-
         bottomBar = { BottomNavigationBar(navHostController) },
-        containerColor = Color(0xFFFFFFFF),
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(paddingValues)
                 .background(Color(0xFFFFFFFF))
+                .padding(paddingValues)
                 .padding(top = 16.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Profile Picture
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, Color.Gray, CircleShape)
-            ) {
-                Image(
-                    painter = if (imageUri != null) rememberAsyncImagePainter(imageUri)
-                    else painterResource(id = R.drawable.baseline_account_circle_24),
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+            ProfileImage(imageUri)
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = userName,
-                style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center
             )
 
@@ -99,46 +87,17 @@ fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth, onSi
 
             Text(
                 text = auth.currentUser?.email ?: "user@example.com",
-                style = TextStyle(fontSize = 16.sp, color = Color.Gray),
+                style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray),
                 textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Button(
-                    onClick = { showDialog = true },
-                    modifier = Modifier.fillMaxWidth(0.8f).height(50.dp)
-                ) {
-                    Text("Edit Profile")
-                }
-
-                Button(
-                    colors = ButtonDefaults.buttonColors(Color.Red),
-                    onClick = {
-                        auth.signOut()
-                        onSignOut()
-                    },
-                    modifier = Modifier.height(50.dp)
-                ) {
-                    Text("Log Out", style = TextStyle(color = Color.White))
-                }
-
-                Spacer(Modifier.height(16.dp))
-                Button(
-                    colors = ButtonDefaults.buttonColors(Color.Red),
-                    onClick = {
-                        onSheetNav()
-                    },
-                    modifier = Modifier.height(50.dp)
-                ) {
-                    Text("Edit user data", style = TextStyle(color = Color.White))
-                }
-            }
+            ActionButtons(
+                onEditProfile = { showDialog = true },
+                onSignOut = onSignOut,
+                onSheetNav = onSheetNav
+            )
         }
     }
 
@@ -152,6 +111,65 @@ fun AccountScreen(navHostController: NavHostController, auth: FirebaseAuth, onSi
                 showDialog = false
             }
         )
+    }
+}
+
+@Composable
+fun ProfileImage(imageUri: Uri?) {
+    Box(
+        modifier = Modifier
+            .size(120.dp)
+            .clip(CircleShape)
+            .border(2.dp, Color.Gray, CircleShape)
+    ) {
+        AsyncImage(
+            model = imageUri ?: R.drawable.baseline_account_circle_24,
+            contentDescription = "Profile Picture",
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+@Composable
+fun ActionButtons(
+    onEditProfile: () -> Unit,
+    onSignOut: () -> Unit,
+    onSheetNav: () -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(
+            onClick = onEditProfile,
+            modifier = Modifier.fillMaxWidth(0.8f).height(50.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43A047))
+        ) {
+            Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Edit Profile")
+        }
+
+        Button(
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+            onClick = onSignOut,
+            modifier = Modifier.fillMaxWidth(0.8f).height(50.dp),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Log Out", modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Log Out", color = Color.White)
+        }
+
+        Button(
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
+            onClick = onSheetNav,
+            modifier = Modifier.fillMaxWidth(0.8f).height(50.dp),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Edit User Data", color = Color.White)
+        }
     }
 }
 
@@ -179,19 +197,7 @@ fun EditProfileDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, Color.Gray, CircleShape)
-                ) {
-                    Image(
-                        painter = if (imageUri != null) rememberAsyncImagePainter(imageUri)
-                        else painterResource(id = R.drawable.baseline_account_circle_24),
-                        contentDescription = "Selected Image",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                ProfileImage(imageUri)
 
                 Button(onClick = { launcher.launch("image/*") }) {
                     Text("Choose Image")
@@ -216,24 +222,4 @@ fun EditProfileDialog(
             }
         }
     )
-}
-
-fun saveProfileToFireStore(userId: String?, name: String,onComplete: () -> Unit) {
-    if (userId == null) return
-
-    val firestore = FirebaseFirestore.getInstance()
-    val profileData = hashMapOf(
-        "name" to name,
-    )
-
-    firestore.collection("users")
-        .document(userId)
-        .set(profileData)
-        .addOnSuccessListener {
-            println("Profile updated successfully.")
-            onComplete() // Trigger UI refresh
-        }
-        .addOnFailureListener { e ->
-            println("Error updating profile: ${e.message}")
-        }
 }
