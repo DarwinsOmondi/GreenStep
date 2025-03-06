@@ -10,6 +10,7 @@ GreenStep is an innovative carbon emission tracker designed to help individuals 
 - **Secure Authentication:** Implements Firebase Authentication for secure user access.
 - **Seamless Data Management:** Uses Firestore to store and manage user data efficiently.
 - **User-Friendly Interface:** Designed for a smooth and engaging experience.
+- **Step and distance covered** Allowing for accurate data for determing the users carbon emissions
 
 ## Technologies Used
 
