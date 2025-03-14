@@ -19,7 +19,6 @@ GreenStep is an innovative carbon emission tracker designed to help individuals 
 - **Gemini API** – AI-powered insights and recommendations for sustainability.
 
 ## Installation
-
 1. Clone the repository:
    ```sh
    git clone https://github.com/DarwinsOmondi/wingreenstep.git
