@@ -17,7 +17,6 @@ GreenStep is an innovative carbon emission tracker designed to help individuals 
 - **Firebase Authentication** – Secure and seamless user authentication.
 - **Firestore** – Real-time NoSQL cloud database for data storage.
 - **Gemini API** – AI-powered insights and recommendations for sustainability.
-
 ## Installation
 1. Clone the repository:
    ```sh
