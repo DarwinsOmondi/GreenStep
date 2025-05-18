@@ -1,5 +1,4 @@
 # GreenStep
-
 GreenStep is an innovative carbon emission tracker designed to help individuals and organizations minimize their environmental footprint. With an intuitive interface, the app enables users to monitor daily carbon emissions, set sustainability goals, and receive personalized insights for adopting greener habits.
 
 ## Features
